@@ -80,6 +80,7 @@ class TaskList(QtWidgets.QScrollArea):
 
             self.task_cards.append(task_card)
 
+# this class combines the TaskList with a header and manages the sorting of tasks
 class TaskView(QtWidgets.QVBoxLayout):
     def __init__(self, tasks: list[Task]):
         super().__init__()
@@ -108,18 +109,19 @@ class TaskView(QtWidgets.QVBoxLayout):
 
     @QtCore.Slot()
     def change_sort(self):
-        if self.sort_type.value == 3:
-            self.sort_type = SortType(0)
-        else:
-            self.sort_type = SortType(self.sort_type.value + 1)
+        # mask the enum index to 0b11, meaning it wraps around after 3,
+        # saves two branches and improves readability
+        self.sort_type = SortType((self.sort_type.value + 1) & 3)
         
         self.sort_tasks()
+        # redraw the TaskList
         self.task_list.clear_list()
         self.task_list.populate_list(self.tasks)
 
         self.sort_btn.setText(f"Sort by: {str(self.sort_type)}")
     
     def sort_tasks(self):
+        # these functions are defined within the function as they are only used in this function
         def sort_name(a: Task, b: Task) -> bool:
             return a.title < b.title
         def sort_class(a: Task, b: Task) -> bool:
@@ -132,6 +134,9 @@ class TaskView(QtWidgets.QVBoxLayout):
         def swap(v, i, j):
             v[i], v[j] = v[j], v[i]
         
+        # this is effectively an anonymous function
+        # is used to compare different fields of the task based on the SortType
+        # improves performance and readability
         sort_cmp = sort_name
 
         match self.sort_type:
@@ -144,6 +149,7 @@ class TaskView(QtWidgets.QVBoxLayout):
             case SortType.DUEDATE:
                 sort_cmp = sort_due_date
         
+        # selection sort
         list_len = len(self.tasks)
 
         for i in range(0, list_len):
