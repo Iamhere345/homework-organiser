@@ -73,6 +73,7 @@ class TaskList(QtWidgets.QScrollArea):
 
         self.task_cards.clear()
     
+    # assumes task_cards is empty, otherwise duplicates will be created
     def populate_list(self, tasks: list[Task]):
         for task in tasks:
             task_card = TaskCard(task)

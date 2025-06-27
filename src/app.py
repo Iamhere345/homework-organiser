@@ -15,6 +15,7 @@ class HomeworkOrganiser(QtWidgets.QWidget):
         self.main_layout = QtWidgets.QHBoxLayout()
         self.setLayout(self.main_layout)
 
+        # hardcoded testing values
         self.tasks = [
             Task("a", datetime(2025, 7, 1), "e", TaskPriority.MEDIUM),
             Task("b", datetime(2018, 10, 10), "d", TaskPriority.LOW),
