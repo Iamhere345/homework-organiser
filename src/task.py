@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
+# an enum has been used as the tasks priority can only be defined as these specific values
 class TaskPriority(Enum):
     LOW = 0
     MEDIUM = 1
@@ -15,6 +16,9 @@ class Task:
         self.completed = False
         self.priority = priority
     
+    def __str__(self):
+        return f"{self.title} {self.due_date.strftime("%d/%m/%y")} {self.class_name} {str(self.priority)} {str(self.completed)}"
+
     def is_complete(self) -> bool:
         return self.completed
     
