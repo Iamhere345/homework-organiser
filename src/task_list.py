@@ -1,10 +1,12 @@
 from PySide6 import QtWidgets
 from PySide6 import QtCore
+from PySide6 import QtGui
 import PySide6
 
 from datetime import datetime
 
 from task import *
+from utils import *
 
 class SortType(Enum):
     NAME = 0
@@ -25,16 +27,16 @@ class SortType(Enum):
             case _:
                 return f"Unknown ({self.value})"
 
-class TaskCard(QtWidgets.QGroupBox):
-    def __init__(self, task: Task):
+class TaskCard(QtWidgets.QFrame):
+    def __init__(self, task: Task, striped: bool):
         super().__init__()
 
         hbox = QtWidgets.QHBoxLayout()
         vbox = QtWidgets.QVBoxLayout()
 
-        title = QtWidgets.QLabel(f"{task.get_title()}")
-        due_date = QtWidgets.QLabel(f"{task.get_due_date().strftime("%d/%m/%y")}")
-        class_name = QtWidgets.QLabel(f"{task.get_class()}")
+        title = QtWidgets.QLabel(f"<h3>{task.get_title()}</h3>")
+        due_date = QtWidgets.QLabel(f"<p><i><u><b>{task.get_due_date().strftime("%d/%m/%y")}</b></u></i></p>")
+        class_name = QtWidgets.QLabel(f"{task.get_class()}") 
 
         vbox.addWidget(title)
         vbox.addWidget(due_date)
@@ -42,28 +44,40 @@ class TaskCard(QtWidgets.QGroupBox):
 
         hbox.addLayout(vbox)
 
+        hbox.addStretch()
+
         checkbox = QtWidgets.QCheckBox("Mark as complete")
         hbox.addWidget(checkbox)
 
+        colour = "mid" if striped else "light"
+
         super().setLayout(hbox)
+        super().setStyleSheet(f"background-color: palette({colour}); border-radius: 8px;")
+        super().setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
 
 class TaskList(QtWidgets.QScrollArea):
     def __init__(self, tasks: list[Task]):
         super().__init__()
+        super().setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        super().setWidgetResizable(True)
 
         self.main_vbox = QtWidgets.QVBoxLayout()
         
         self.holder_widget = QtWidgets.QWidget()
+        self.holder_widget.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred)
+
         self.list_vbox = QtWidgets.QVBoxLayout()
+        self.list_vbox.setSpacing(0)
+        self.list_vbox.setContentsMargins(0, 0, 0, 0)
 
         self.task_cards: list[TaskCard] = []
 
-        for task in tasks:
-            task_card = TaskCard(task)
+        for i, task in enumerate(tasks):
+            task_card = TaskCard(task, i % 2 == 0)
             self.list_vbox.addWidget(task_card)
 
             self.task_cards.append(task_card)
-        
+
         self.holder_widget.setLayout(self.list_vbox)
         super().setWidget(self.holder_widget)
     
@@ -75,8 +89,8 @@ class TaskList(QtWidgets.QScrollArea):
     
     # assumes task_cards is empty, otherwise duplicates will be created
     def populate_list(self, tasks: list[Task]):
-        for task in tasks:
-            task_card = TaskCard(task)
+        for i, task in enumerate(tasks):
+            task_card = TaskCard(task, i % 2 == 0)
             self.list_vbox.addWidget(task_card)
 
             self.task_cards.append(task_card)
@@ -85,6 +99,7 @@ class TaskList(QtWidgets.QScrollArea):
 class TaskView(QtWidgets.QVBoxLayout):
     def __init__(self, tasks: list[Task]):
         super().__init__()
+        super().setContentsMargins(0, 0, 0, 0)
 
         self.tasks = tasks
         self.sort_type = SortType.NAME
@@ -103,6 +118,10 @@ class TaskView(QtWidgets.QVBoxLayout):
         self.header_hbox.addWidget(self.sort_btn)
 
         super().addLayout(self.header_hbox)
+
+        self.seperator = SeperatorLine(False)
+        
+        super().addWidget(self.seperator)
 
     def show_list(self):
         self.task_list = TaskList(self.tasks)

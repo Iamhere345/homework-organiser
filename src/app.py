@@ -5,6 +5,8 @@ from PySide6 import QtWidgets
 
 from task_list import *
 from task import *
+from task_edit import *
+from utils import *
 
 class HomeworkOrganiser(QtWidgets.QWidget):
     def __init__(self):
@@ -25,4 +27,15 @@ class HomeworkOrganiser(QtWidgets.QWidget):
         ]
 
         self.task_view = TaskView(self.tasks)
-        self.main_layout.addLayout(self.task_view)
+        self.task_view_container = QtWidgets.QWidget()
+        self.task_view_container.setLayout(self.task_view)
+        self.main_layout.addWidget(self.task_view_container, stretch=1)
+        self.task_view_container.adjustSize()
+
+        self.seperator_line = SeperatorLine(True)
+        self.main_layout.addWidget(self.seperator_line, stretch=1)
+
+        self.edit_view = TaskEdit()
+        self.edit_view_container = QtWidgets.QWidget()
+        self.edit_view_container.setLayout(self.edit_view)
+        self.main_layout.addWidget(self.edit_view_container, stretch=2)
