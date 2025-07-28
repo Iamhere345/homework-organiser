@@ -1,9 +1,9 @@
 from datetime import datetime
-from enum import Enum
+from enum import IntEnum
 
 # an enum has been used as the tasks priority can only be defined as these specific values
 # (effectively a constant)
-class TaskPriority(Enum):
+class TaskPriority(IntEnum):
     LOW = 0
     MEDIUM = 1
     HIGH = 2
@@ -29,6 +29,10 @@ class Task:
     def is_complete(self) -> bool:
         return self.completed
     
+
+    def set_completed(self, complete: bool):
+        self.completed = complete
+
     def complete_task(self):
         self.completed = True
     

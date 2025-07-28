@@ -2,20 +2,30 @@ from datetime import datetime
 import calendar
 
 from PySide6 import QtWidgets
+from PySide6 import QtCore
 from PySide6.QtCore import Qt
 
 from task import *
 
 class TaskEdit(QtWidgets.QVBoxLayout):
+    updated = QtCore.Signal()
+
     def __init__(self):
         super().__init__()
         super().setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self.selected_task = None
 
         self.title = QtWidgets.QLabel('<h1>Task Title</h1>')
         super().addWidget(self.title)
 
         self.show_txt_fields()
         self.show_btn_fields()
+
+        self.update_btn = QtWidgets.QPushButton("Update Task")
+        self.update_btn.pressed.connect(self.update_task)
+        super().addWidget(self.update_btn)
+
         self.show_date_picker()
 
     def show_txt_fields(self):
@@ -45,20 +55,62 @@ class TaskEdit(QtWidgets.QVBoxLayout):
             "High",
             "Very High",
         ])
+        self.priority_combo.currentIndexChanged.connect(self.on_priority_selected)
         self.btn_hbox.addWidget(self.priority_combo)
 
         super().addLayout(self.btn_hbox)
+
+    def on_priority_selected(self):
+        # ? Existence check
+        if not self.selected_task is None:
+            match self.priority_combo.currentIndex():
+                case 0:
+                    return
+                case 1:
+                    self.selected_task.set_priority(TaskPriority.LOW)
+                case 2:
+                    self.selected_task.set_priority(TaskPriority.MEDIUM)
+                case 3:
+                    self.selected_task.set_priority(TaskPriority.HIGH)
+                case 4:
+                    self.selected_task.set_priority(TaskPriority.VERY_HIGH)
 
     def show_date_picker(self):
         self.date_picker_title = QtWidgets.QLabel("<h4>Due Date<h4/>")
         super().addWidget(self.date_picker_title)
 
         self.date_picker = DatePicker()
-        #self.date_picker = QtWidgets.QCalendarWidget()
         super().addLayout(self.date_picker)
 
+    def update_task(self):
+        if not self.selected_task is None:
+            self.selected_task.set_title(self.name_field.text())
+            self.selected_task.set_class(self.class_field.text())
+            self.selected_task.set_due_date(self.date_picker.selected_date)
+
+            match self.priority_combo.currentIndex():
+                case 0:
+                    return
+                case 1:
+                    self.selected_task.set_priority(TaskPriority.LOW)
+                case 2:
+                    self.selected_task.set_priority(TaskPriority.MEDIUM)
+                case 3:
+                    self.selected_task.set_priority(TaskPriority.HIGH)
+                case 4:
+                    self.selected_task.set_priority(TaskPriority.VERY_HIGH)
+
+            self.updated.emit()
+
     def set_selected_task(self, task: Task):
-        pass
+        self.selected_task = task
+
+        self.name_field.setText(self.selected_task.get_title())
+        self.class_field.setText(self.selected_task.get_class())
+        self.priority_combo.setCurrentIndex(int(self.selected_task.get_priority()) + 1)
+        self.date_picker.set_date(self.selected_task.get_due_date())
+
+        
 
 # TODO document
 class DatePicker(QtWidgets.QHBoxLayout):
@@ -82,6 +134,10 @@ class DatePicker(QtWidgets.QHBoxLayout):
         super().addWidget(self.month_combo)
         super().addWidget(self.year_combo)
     
+    def set_date(self, new_date: datetime):
+        self.selected_date = new_date
+        self.redraw_combos()
+    
     def redraw_combos(self):
         # repopulate year combo
         # * the index changed event needs to be disconnected before the combobox items can be changed
@@ -89,7 +145,7 @@ class DatePicker(QtWidgets.QHBoxLayout):
         self.year_combo.currentIndexChanged.disconnect()
         self.year_combo.clear()
 
-        # RANGE CHECK: prevents the user from selecting a year that is before the current year
+        # ? RANGE CHECK: prevents the user from selecting a year that is before the current year
         for year in range(self.selected_date.year, self.selected_date.year + 10):
             self.year_combo.addItem(str(year))
         self.year_combo.setCurrentIndex(0)
@@ -143,26 +199,3 @@ class DatePicker(QtWidgets.QHBoxLayout):
         (_, max_day) = calendar.monthrange(year, month)
         # ensure the day field is within the range of the days of the month
         return min(self.selected_date.day, max_day)
-
-    """
-    def update_day_combo(self):
-
-        (_, max_day) = calendar.monthrange(self.selected_date.year, self.selected_date.month)
-
-        #print(f"min({self.day_combo.currentIndex()}, {max_day - 1}")
-        new_index = min(self.day_combo.currentIndex(), max_day - 1)
-
-        print(f"cur index: {self.day_combo.currentIndex()}, new month: {self.selected_date.month}, max day: {max_day}, new index: {new_index}")
-
-        self.day_combo.currentIndexChanged.disconnect()
-
-        self.day_combo.clear()
-        for day in range(1, max_day):
-            self.day_combo.addItem(str(day))
-        
-        self.day_combo.currentIndexChanged.connect(self.day_changed)
-
-        self.day_combo.setCurrentIndex(new_index)
-
-        print(f"max day: {max_day}")
-    """

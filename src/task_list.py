@@ -8,7 +8,7 @@ from datetime import datetime
 from task import *
 from utils import *
 
-class SortType(Enum):
+class SortType(IntEnum):
     NAME = 0
     CLASS = 1
     DUEDATE = 2
@@ -28,8 +28,12 @@ class SortType(Enum):
                 return f"Unknown ({self.value})"
 
 class TaskCard(QtWidgets.QFrame):
-    def __init__(self, task: Task, striped: bool):
+    selected = QtCore.Signal(Task)
+
+    def __init__(self, task: Task, striped: bool, index: int):
         super().__init__()
+
+        self.index = index
 
         hbox = QtWidgets.QHBoxLayout()
         vbox = QtWidgets.QVBoxLayout()
@@ -46,7 +50,8 @@ class TaskCard(QtWidgets.QFrame):
 
         hbox.addStretch()
 
-        checkbox = QtWidgets.QCheckBox("Mark as complete")
+        checkbox = QtWidgets.QCheckBox()
+        checkbox.setChecked(task.is_complete())
         hbox.addWidget(checkbox)
 
         colour = "mid" if striped else "light"
@@ -55,8 +60,11 @@ class TaskCard(QtWidgets.QFrame):
         super().setStyleSheet(f"background-color: palette({colour}); border-radius: 8px;")
         super().setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
 
+    def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
+        self.selected.emit(self.index)
+
 class TaskList(QtWidgets.QScrollArea):
-    def __init__(self, tasks: list[Task]):
+    def __init__(self, tasks: list[Task], on_task_selected):
         super().__init__()
         super().setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         super().setWidgetResizable(True)
@@ -72,11 +80,7 @@ class TaskList(QtWidgets.QScrollArea):
 
         self.task_cards: list[TaskCard] = []
 
-        for i, task in enumerate(tasks):
-            task_card = TaskCard(task, i % 2 == 0)
-            self.list_vbox.addWidget(task_card)
-
-            self.task_cards.append(task_card)
+        self.populate_list(tasks, on_task_selected)
 
         self.holder_widget.setLayout(self.list_vbox)
         super().setWidget(self.holder_widget)
@@ -88,24 +92,37 @@ class TaskList(QtWidgets.QScrollArea):
         self.task_cards.clear()
     
     # assumes task_cards is empty, otherwise duplicates will be created
-    def populate_list(self, tasks: list[Task]):
+    def populate_list(self, tasks: list[Task], on_task_selected):
         for i, task in enumerate(tasks):
-            task_card = TaskCard(task, i % 2 == 0)
-            self.list_vbox.addWidget(task_card)
+            task_card = TaskCard(task, i % 2 == 0, i)
+            task_card.selected.connect(self.select_task)
+            task_card.selected.connect(on_task_selected)
 
+            self.list_vbox.addWidget(task_card)
             self.task_cards.append(task_card)
 
+    @QtCore.Slot()
+    def select_task(self, index: int):
+        print("task selected")
+        for i, task in enumerate(self.task_cards):
+            if i == index:
+                task.setStyleSheet(f"background-color: palette(highlight); border-radius: 8px;")
+            else:
+                colour = "mid" if i % 2 == 0 else "light"
+                task.setStyleSheet(f"background-color: palette({colour}); border-radius: 8px;")
 # this class combines the TaskList with a header and manages the sorting of tasks
 class TaskView(QtWidgets.QVBoxLayout):
-    def __init__(self, tasks: list[Task]):
+    def __init__(self, tasks: list[Task], on_task_selected):
         super().__init__()
         super().setContentsMargins(0, 0, 0, 0)
+
+        self.on_task_selected = on_task_selected
 
         self.tasks = tasks
         self.sort_type = SortType.NAME
 
         self.show_header()
-        self.show_list()
+        self.show_list(on_task_selected)
 
     def show_header(self):
         self.header_hbox = QtWidgets.QHBoxLayout()
@@ -123,9 +140,13 @@ class TaskView(QtWidgets.QVBoxLayout):
         
         super().addWidget(self.seperator)
 
-    def show_list(self):
-        self.task_list = TaskList(self.tasks)
+    def show_list(self, on_task_selected):
+        self.task_list = TaskList(self.tasks, on_task_selected)
         super().addWidget(self.task_list)
+
+    def redraw_list(self):
+        self.task_list.clear_list()
+        self.task_list.populate_list(self.tasks, self.on_task_selected)
 
     @QtCore.Slot()
     def change_sort(self):
@@ -136,7 +157,7 @@ class TaskView(QtWidgets.QVBoxLayout):
         self.sort_tasks()
         # redraw the TaskList
         self.task_list.clear_list()
-        self.task_list.populate_list(self.tasks)
+        self.task_list.populate_list(self.tasks, self.on_task_selected)
 
         self.sort_btn.setText(f"Sort by: {str(self.sort_type)}")
     

@@ -26,7 +26,7 @@ class HomeworkOrganiser(QtWidgets.QWidget):
             Task("e", datetime(2011, 3, 22), "a", TaskPriority.LOW),
         ]
 
-        self.task_view = TaskView(self.tasks)
+        self.task_view = TaskView(self.tasks, self.set_selected_task)
         self.task_view_container = QtWidgets.QWidget()
         self.task_view_container.setLayout(self.task_view)
         self.main_layout.addWidget(self.task_view_container, stretch=1)
@@ -38,4 +38,13 @@ class HomeworkOrganiser(QtWidgets.QWidget):
         self.edit_view = TaskEdit()
         self.edit_view_container = QtWidgets.QWidget()
         self.edit_view_container.setLayout(self.edit_view)
+        self.edit_view.updated.connect(self.task_updated)
         self.main_layout.addWidget(self.edit_view_container, stretch=2)
+
+    @QtCore.Slot()
+    def set_selected_task(self, index):
+        self.edit_view.set_selected_task(self.tasks[index])
+    
+    @QtCore.Slot()
+    def task_updated(self):
+        self.task_view.redraw_list()
