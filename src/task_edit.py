@@ -6,25 +6,25 @@ from PySide6 import QtCore
 from PySide6.QtCore import Qt
 
 from task import *
+from utils import *
 
 class TaskEdit(QtWidgets.QVBoxLayout):
     updated = QtCore.Signal()
+    created = QtCore.Signal(Task)
+    deleted = QtCore.Signal(int)
 
     def __init__(self):
         super().__init__()
         super().setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.selected_task = None
+        self.task_index = None
 
         self.title = QtWidgets.QLabel('<h1>Task Title</h1>')
         super().addWidget(self.title)
 
         self.show_txt_fields()
         self.show_btn_fields()
-
-        self.update_btn = QtWidgets.QPushButton("Update Task")
-        self.update_btn.pressed.connect(self.update_task)
-        super().addWidget(self.update_btn)
 
         self.show_date_picker()
 
@@ -42,10 +42,11 @@ class TaskEdit(QtWidgets.QVBoxLayout):
         super().addLayout(self.txt_hbox)
 
     def show_btn_fields(self):
-        self.btn_hbox = QtWidgets.QHBoxLayout()
+        self.btn_hbox_1 = QtWidgets.QHBoxLayout()
+        self.btn_hbox_2 = QtWidgets.QHBoxLayout()
 
         self.complete_btn = QtWidgets.QPushButton("Mark as complete")
-        self.btn_hbox.addWidget(self.complete_btn)
+        self.btn_hbox_1.addWidget(self.complete_btn)
 
         self.priority_combo = QtWidgets.QComboBox()
         self.priority_combo.addItems([
@@ -55,25 +56,19 @@ class TaskEdit(QtWidgets.QVBoxLayout):
             "High",
             "Very High",
         ])
-        self.priority_combo.currentIndexChanged.connect(self.on_priority_selected)
-        self.btn_hbox.addWidget(self.priority_combo)
+        self.btn_hbox_1.addWidget(self.priority_combo)
 
-        super().addLayout(self.btn_hbox)
+        self.delete_btn = QtWidgets.QPushButton("Delete Task")
+        self.delete_btn.pressed.connect(self.delete_task)
+        self.btn_hbox_2.addWidget(self.delete_btn)
 
-    def on_priority_selected(self):
-        # ? Existence check
-        if not self.selected_task is None:
-            match self.priority_combo.currentIndex():
-                case 0:
-                    return
-                case 1:
-                    self.selected_task.set_priority(TaskPriority.LOW)
-                case 2:
-                    self.selected_task.set_priority(TaskPriority.MEDIUM)
-                case 3:
-                    self.selected_task.set_priority(TaskPriority.HIGH)
-                case 4:
-                    self.selected_task.set_priority(TaskPriority.VERY_HIGH)
+        self.update_btn = QtWidgets.QPushButton("Create Task")
+        self.update_btn.setDefault(True)
+        self.update_btn.pressed.connect(self.update_task)
+        self.btn_hbox_2.addWidget(self.update_btn)
+
+        super().addLayout(self.btn_hbox_1)
+        super().addLayout(self.btn_hbox_2)
 
     def show_date_picker(self):
         self.date_picker_title = QtWidgets.QLabel("<h4>Due Date<h4/>")
@@ -83,13 +78,19 @@ class TaskEdit(QtWidgets.QVBoxLayout):
         super().addLayout(self.date_picker)
 
     def update_task(self):
+        # ? Existence check
         if not self.selected_task is None:
+            if self.name_field.text() == "" or self.class_field.text() == "":
+                ErrorMessage("Unable to Create Task", "Some fields are empty.")
+                return
+
             self.selected_task.set_title(self.name_field.text())
             self.selected_task.set_class(self.class_field.text())
             self.selected_task.set_due_date(self.date_picker.selected_date)
 
             match self.priority_combo.currentIndex():
                 case 0:
+                    ErrorMessage("Unable to Update Task", "Please select a priority.")
                     return
                 case 1:
                     self.selected_task.set_priority(TaskPriority.LOW)
@@ -101,14 +102,65 @@ class TaskEdit(QtWidgets.QVBoxLayout):
                     self.selected_task.set_priority(TaskPriority.VERY_HIGH)
 
             self.updated.emit()
+            self.clear_selected_task()
 
-    def set_selected_task(self, task: Task):
+        else:
+            if self.name_field.text() == "" or self.class_field.text() == "":
+                ErrorMessage("Unable to Create Task", "Some fields are empty.")
+                return
+
+            self.selected_task = Task(
+                self.name_field.text(),
+                self.date_picker.selected_date,
+                self.class_field.text(),
+                TaskPriority.LOW
+            )
+
+            match self.priority_combo.currentIndex():
+                case 0:
+                    ErrorMessage("Unable to Create Task", "Please select a priority.")
+                    return
+                case 1:
+                    self.selected_task.set_priority(TaskPriority.LOW)
+                case 2:
+                    self.selected_task.set_priority(TaskPriority.MEDIUM)
+                case 3:
+                    self.selected_task.set_priority(TaskPriority.HIGH)
+                case 4:
+                    self.selected_task.set_priority(TaskPriority.VERY_HIGH)
+            
+            self.created.emit(self.selected_task)
+            self.clear_selected_task()
+
+    def delete_task(self):
+        # ? type check
+        if isinstance(self.task_index, int):
+            self.deleted.emit(self.task_index)
+            self.clear_selected_task()
+        else:
+            ErrorMessage("Unable to Delete Task", "A task must be selected for it to be deleted.")
+        
+
+    def set_selected_task(self, task: Task, index: int):
         self.selected_task = task
+        self.task_index = index
 
         self.name_field.setText(self.selected_task.get_title())
         self.class_field.setText(self.selected_task.get_class())
         self.priority_combo.setCurrentIndex(int(self.selected_task.get_priority()) + 1)
         self.date_picker.set_date(self.selected_task.get_due_date())
+
+        self.update_btn.setText("Update Task")
+    
+    def clear_selected_task(self):
+        self.update_btn.setText("Create Task")
+        self.selected_task = None
+        self.task_index = None
+
+        self.name_field.setText(" ")
+        self.class_field.setText(" ")
+        self.priority_combo.setCurrentIndex(0)
+        self.date_picker.set_date(datetime.now())
 
         
 

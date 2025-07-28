@@ -34,6 +34,7 @@ class TaskCard(QtWidgets.QFrame):
         super().__init__()
 
         self.index = index
+        self.task = task
 
         hbox = QtWidgets.QHBoxLayout()
         vbox = QtWidgets.QVBoxLayout()
@@ -50,15 +51,19 @@ class TaskCard(QtWidgets.QFrame):
 
         hbox.addStretch()
 
-        checkbox = QtWidgets.QCheckBox()
-        checkbox.setChecked(task.is_complete())
-        hbox.addWidget(checkbox)
+        self.checkbox = QtWidgets.QCheckBox()
+        self.checkbox.setChecked(task.is_complete())
+        self.checkbox.checkStateChanged.connect(self.checkbox_pressed)
+        hbox.addWidget(self.checkbox)
 
         colour = "mid" if striped else "light"
 
         super().setLayout(hbox)
         super().setStyleSheet(f"background-color: palette({colour}); border-radius: 8px;")
-        super().setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        super().setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
+
+    def checkbox_pressed(self):
+        self.task.set_completed(self.checkbox.isChecked())
 
     def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
         self.selected.emit(self.index)
@@ -78,6 +83,12 @@ class TaskList(QtWidgets.QScrollArea):
         self.list_vbox.setSpacing(0)
         self.list_vbox.setContentsMargins(0, 0, 0, 0)
 
+        self.list_spacer = QtWidgets.QSpacerItem(
+            0, 0,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.Expanding
+        )
+
         self.task_cards: list[TaskCard] = []
 
         self.populate_list(tasks, on_task_selected)
@@ -89,6 +100,7 @@ class TaskList(QtWidgets.QScrollArea):
         for card in self.task_cards:
             card.deleteLater()
 
+        self.list_vbox.removeItem(self.list_spacer)
         self.task_cards.clear()
     
     # assumes task_cards is empty, otherwise duplicates will be created
@@ -100,6 +112,8 @@ class TaskList(QtWidgets.QScrollArea):
 
             self.list_vbox.addWidget(task_card)
             self.task_cards.append(task_card)
+        
+        self.list_vbox.addSpacerItem(self.list_spacer)
 
     @QtCore.Slot()
     def select_task(self, index: int):

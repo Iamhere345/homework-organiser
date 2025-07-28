@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QFrame
+from PySide6.QtWidgets import QFrame, QMessageBox
 
 class SeperatorLine(QFrame):
     def __init__(self, is_vertical: bool):
@@ -12,3 +12,15 @@ class SeperatorLine(QFrame):
         else:
             super().setFrameShape(QFrame.Shape.HLine)
             super().setFixedHeight(1)
+
+class ErrorMessage(QMessageBox):
+    def __init__(self, title: str, desc: str):
+        super().__init__()
+
+        super().setWindowTitle(title)
+        super().setText(desc)
+        super().setIcon(QMessageBox.Icon.Warning)
+
+        super().setStandardButtons(QMessageBox.StandardButton.Ok)
+
+        super().exec()
