@@ -9,7 +9,7 @@ from task_edit import *
 from utils import *
 
 class HomeworkOrganiser(QtWidgets.QWidget):
-    def __init__(self):
+    def __init__(self, tasks: list[Task]):
         super().__init__()
 
         self.setWindowTitle("Homework Organiser")
@@ -18,13 +18,7 @@ class HomeworkOrganiser(QtWidgets.QWidget):
         self.setLayout(self.main_layout)
 
         # hardcoded testing values
-        self.tasks = [
-            Task("a", datetime(2025, 7, 1), "e", TaskPriority.MEDIUM),
-            Task("b", datetime(2018, 10, 10), "d", TaskPriority.LOW),
-            Task("c", datetime(2022, 8, 12), "c", TaskPriority.HIGH),
-            Task("d", datetime(2026, 12, 4), "b", TaskPriority.VERY_HIGH),
-            Task("e", datetime(2011, 3, 22), "a", TaskPriority.LOW),
-        ]
+        self.tasks = tasks
 
         self.task_view = TaskView(self.tasks, self.set_selected_task)
         self.task_view_container = QtWidgets.QWidget()

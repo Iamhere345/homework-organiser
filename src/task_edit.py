@@ -46,6 +46,7 @@ class TaskEdit(QtWidgets.QVBoxLayout):
         self.btn_hbox_2 = QtWidgets.QHBoxLayout()
 
         self.complete_btn = QtWidgets.QPushButton("Mark as complete")
+        self.complete_btn.pressed.connect(self.on_complete_pressed)
         self.btn_hbox_1.addWidget(self.complete_btn)
 
         self.priority_combo = QtWidgets.QComboBox()
@@ -76,6 +77,12 @@ class TaskEdit(QtWidgets.QVBoxLayout):
 
         self.date_picker = DatePicker()
         super().addLayout(self.date_picker)
+
+    def on_complete_pressed(self):
+        if not self.selected_task is None:
+            self.selected_task.complete_task()
+        else:
+            ErrorMessage("Unable to mark task as complete", "Please select an existing task to mark it as complete.")
 
     def update_task(self):
         # ? Existence check
@@ -119,6 +126,7 @@ class TaskEdit(QtWidgets.QVBoxLayout):
             match self.priority_combo.currentIndex():
                 case 0:
                     ErrorMessage("Unable to Create Task", "Please select a priority.")
+                    self.selected_task = None
                     return
                 case 1:
                     self.selected_task.set_priority(TaskPriority.LOW)
