@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QFrame, QMessageBox
 
+# creates a 1px vertical or horizontal seperator line
 class SeperatorLine(QFrame):
     def __init__(self, is_vertical: bool):
         super().__init__()
@@ -13,6 +14,7 @@ class SeperatorLine(QFrame):
             super().setFrameShape(QFrame.Shape.HLine)
             super().setFixedHeight(1)
 
+# shows an error message popup
 class ErrorMessage(QMessageBox):
     def __init__(self, title: str, desc: str):
         super().__init__()

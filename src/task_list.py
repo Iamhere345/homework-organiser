@@ -8,12 +8,15 @@ from datetime import datetime
 from task import *
 from utils import *
 
+# an enum has been used as the sort type can only be defined as these specific values
+# (effectively a constant)
 class SortType(IntEnum):
     NAME = 0
     CLASS = 1
     DUEDATE = 2
     PRIORITY = 3
 
+    # override string casting for the button text
     def __str__(self):
         match self:
             case SortType.NAME:
@@ -27,6 +30,7 @@ class SortType(IntEnum):
             case _:
                 return f"Unknown ({self.value})"
 
+# represents a single task entry in the task list
 class TaskCard(QtWidgets.QFrame):
     selected = QtCore.Signal(Task)
 
@@ -39,6 +43,8 @@ class TaskCard(QtWidgets.QFrame):
         hbox = QtWidgets.QHBoxLayout()
         vbox = QtWidgets.QVBoxLayout()
 
+        # initialise labels
+        # use html/rich text for text formatting
         title = QtWidgets.QLabel(f"<h3>{task.get_title()}</h3>")
         due_date = QtWidgets.QLabel(f"<p><i><u><b>{task.get_due_date().strftime("%d/%m/%y")}</b></u></i></p>")
         class_name = QtWidgets.QLabel(f"{task.get_class()}") 
@@ -51,6 +57,7 @@ class TaskCard(QtWidgets.QFrame):
 
         hbox.addStretch()
 
+        # allows the task to be marked as complete from the task list
         self.checkbox = QtWidgets.QCheckBox()
         self.checkbox.setChecked(task.is_complete())
         self.checkbox.checkStateChanged.connect(self.checkbox_pressed)
@@ -58,31 +65,43 @@ class TaskCard(QtWidgets.QFrame):
 
         colour = "mid" if striped else "light"
 
+        # set style and sizing
         super().setLayout(hbox)
         super().setStyleSheet(f"background-color: palette({colour}); border-radius: 8px;")
+        # allows the card to fill horizontal space but not vertical space
         super().setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
 
+    # mark as complete callback
     def checkbox_pressed(self):
         self.task.set_completed(self.checkbox.isChecked())
 
+    # mouse click callback
+    # used to determine if this task card has been selected
     def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
+        # signal to the rest of the program that this task has been selected
         self.selected.emit(self.index)
 
+# represents the scrollable list part of the widget
 class TaskList(QtWidgets.QScrollArea):
     def __init__(self, tasks: list[Task], on_task_selected):
         super().__init__()
+        # set styling and sizing
         super().setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         super().setWidgetResizable(True)
 
         self.main_vbox = QtWidgets.QVBoxLayout()
         
+        # a blank widget is used to hold the vbox which contains the task cards
+        # this widget is set as the primary widget for the qscrollarea
         self.holder_widget = QtWidgets.QWidget()
         self.holder_widget.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred)
 
+        # set vbox styling
         self.list_vbox = QtWidgets.QVBoxLayout()
         self.list_vbox.setSpacing(0)
         self.list_vbox.setContentsMargins(0, 0, 0, 0)
 
+        # this pushes all task cards to the top of the task list
         self.list_spacer = QtWidgets.QSpacerItem(
             0, 0,
             QtWidgets.QSizePolicy.Policy.Minimum,
@@ -91,11 +110,13 @@ class TaskList(QtWidgets.QScrollArea):
 
         self.task_cards: list[TaskCard] = []
 
+        # populates the list with task cards based on the list of Task objects
         self.populate_list(tasks, on_task_selected)
 
         self.holder_widget.setLayout(self.list_vbox)
         super().setWidget(self.holder_widget)
     
+    # remove all tasks cards from the widget
     def clear_list(self):
         for card in self.task_cards:
             card.deleteLater()
@@ -103,9 +124,11 @@ class TaskList(QtWidgets.QScrollArea):
         self.list_vbox.removeItem(self.list_spacer)
         self.task_cards.clear()
     
+    # adds task cards to the list based on a list of task objects
     # assumes task_cards is empty, otherwise duplicates will be created
     def populate_list(self, tasks: list[Task], on_task_selected):
         for i, task in enumerate(tasks):
+            # sets the task cards colour based on if it's index is even
             task_card = TaskCard(task, i % 2 == 0, i)
             task_card.selected.connect(self.select_task)
             task_card.selected.connect(on_task_selected)
@@ -115,29 +138,36 @@ class TaskList(QtWidgets.QScrollArea):
         
         self.list_vbox.addSpacerItem(self.list_spacer)
 
-    @QtCore.Slot()
+    # sets the colours of all tasks cards to be striped based on their index
+    # sets the selected tasks colour to the highlighted colour
     def select_task(self, index: int):
         print("task selected")
+        # uses teh tasks index (int) to check if it should be coloured light or not
         for i, task in enumerate(self.task_cards):
             if i == index:
                 task.setStyleSheet(f"background-color: palette(highlight); border-radius: 8px;")
             else:
                 colour = "mid" if i % 2 == 0 else "light"
                 task.setStyleSheet(f"background-color: palette({colour}); border-radius: 8px;")
+
 # this class combines the TaskList with a header and manages the sorting of tasks
 class TaskView(QtWidgets.QVBoxLayout):
     def __init__(self, tasks: list[Task], on_task_selected):
         super().__init__()
         super().setContentsMargins(0, 0, 0, 0)
 
+        # initialise state
         self.on_task_selected = on_task_selected
 
         self.tasks = tasks
         self.sort_type = SortType.NAME
 
+        # draw ui
         self.show_header()
         self.show_list(on_task_selected)
 
+    # shows the header part of the list, including the title and sort button
+    # split from __init__ for readability
     def show_header(self):
         self.header_hbox = QtWidgets.QHBoxLayout()
 
@@ -154,29 +184,35 @@ class TaskView(QtWidgets.QVBoxLayout):
         
         super().addWidget(self.seperator)
 
+    # shows the TaskList widget
+    # spit from __init__ for readability
     def show_list(self, on_task_selected):
         self.task_list = TaskList(self.tasks, on_task_selected)
         super().addWidget(self.task_list)
 
+    # clears and repopulates the task list
+    # used when a Task object is changed
     def redraw_list(self):
         self.task_list.clear_list()
         self.task_list.populate_list(self.tasks, self.on_task_selected)
 
-    @QtCore.Slot()
+    # callback for the sort button
+    # changes the sort type, sorts the tasks and redraws the task list
     def change_sort(self):
         # mask the enum index to 0b11, meaning it wraps around after 3,
         # saves two branches and improves readability
         self.sort_type = SortType((self.sort_type.value + 1) & 3)
         
+        # sort tasks and redraw task list
         self.sort_tasks()
-        # redraw the TaskList
-        self.task_list.clear_list()
-        self.task_list.populate_list(self.tasks, self.on_task_selected)
+        self.redraw_list
 
         self.sort_btn.setText(f"Sort by: {str(self.sort_type)}")
     
+    # sorts the list of Task objects based on sort_type
     def sort_tasks(self):
         # these functions are defined within the function as they are only used in this function
+        # defines the comparison made to sort the list baed on the sort type
         def sort_name(a: Task, b: Task) -> bool:
             return a.title < b.title
         def sort_class(a: Task, b: Task) -> bool:
@@ -186,6 +222,7 @@ class TaskView(QtWidgets.QVBoxLayout):
         def sort_due_date(a: Task, b: Task) -> bool:
             return a.due_date < b.due_date
         
+        # swap two elements in a list
         def swap(v, i, j):
             v[i], v[j] = v[j], v[i]
         
@@ -194,6 +231,7 @@ class TaskView(QtWidgets.QVBoxLayout):
         # improves performance and readability
         sort_cmp = sort_name
 
+        # set the sort_cmp based on the sort_type
         match self.sort_type:
             case SortType.NAME:
                 sort_cmp = sort_name

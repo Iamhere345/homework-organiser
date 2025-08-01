@@ -9,6 +9,7 @@ from task import *
 from utils import *
 
 class TaskEdit(QtWidgets.QVBoxLayout):
+    # define Qt signals
     updated = QtCore.Signal()
     created = QtCore.Signal(Task)
     deleted = QtCore.Signal(int)
@@ -28,6 +29,8 @@ class TaskEdit(QtWidgets.QVBoxLayout):
 
         self.show_date_picker()
 
+    # shows text edit fields
+    # split from __init__ for readability
     def show_txt_fields(self):
         self.txt_hbox = QtWidgets.QHBoxLayout()
         
@@ -41,6 +44,8 @@ class TaskEdit(QtWidgets.QVBoxLayout):
 
         super().addLayout(self.txt_hbox)
 
+    # shows the button / combo box fields
+    # split from __init__ for readability
     def show_btn_fields(self):
         self.btn_hbox_1 = QtWidgets.QHBoxLayout()
         self.btn_hbox_2 = QtWidgets.QHBoxLayout()
@@ -71,6 +76,8 @@ class TaskEdit(QtWidgets.QVBoxLayout):
         super().addLayout(self.btn_hbox_1)
         super().addLayout(self.btn_hbox_2)
 
+    # shows the date picker part of the form
+    # split from __init__ for readability
     def show_date_picker(self):
         self.date_picker_title = QtWidgets.QLabel("<h4>Due Date<h4/>")
         super().addWidget(self.date_picker_title)
@@ -78,12 +85,16 @@ class TaskEdit(QtWidgets.QVBoxLayout):
         self.date_picker = DatePicker()
         super().addLayout(self.date_picker)
 
+    # callback for 'mark task as complete' button
+    # marks the task as complete
     def on_complete_pressed(self):
         if not self.selected_task is None:
             self.selected_task.complete_task()
         else:
             ErrorMessage("Unable to mark task as complete", "Please select an existing task to mark it as complete.")
 
+    # callback function for 'update/create task' button
+    # creates or edits a task in the task list, resets form state
     def update_task(self):
         # ? Existence check
         if not self.selected_task is None:
@@ -140,6 +151,7 @@ class TaskEdit(QtWidgets.QVBoxLayout):
             self.created.emit(self.selected_task)
             self.clear_selected_task()
 
+    # used to remove a task from the task list
     def delete_task(self):
         # ? type check
         if isinstance(self.task_index, int):
@@ -148,7 +160,7 @@ class TaskEdit(QtWidgets.QVBoxLayout):
         else:
             ErrorMessage("Unable to Delete Task", "A task must be selected for it to be deleted.")
         
-
+    # public function used to set the selected task based on what the user has selected in the task list
     def set_selected_task(self, task: Task, index: int):
         self.selected_task = task
         self.task_index = index
@@ -160,6 +172,7 @@ class TaskEdit(QtWidgets.QVBoxLayout):
 
         self.update_btn.setText("Update Task")
     
+    # resets the state of the form
     def clear_selected_task(self):
         self.update_btn.setText("Create Task")
         self.selected_task = None
@@ -179,10 +192,11 @@ class DatePicker(QtWidgets.QHBoxLayout):
 
         self.selected_date = datetime.now()
 
+        # initialise combo boxes
         self.year_combo = QtWidgets.QComboBox()   
         self.month_combo = QtWidgets.QComboBox()
         self.day_combo = QtWidgets.QComboBox()
-
+        # connect events for combo boxes
         self.day_combo.currentIndexChanged.connect(self.day_changed)
         self.month_combo.currentIndexChanged.connect(self.month_changed)
         self.year_combo.currentIndexChanged.connect(self.year_changed)
@@ -257,5 +271,10 @@ class DatePicker(QtWidgets.QHBoxLayout):
     
     def get_clamped_day(self, year, month) -> int:
         (_, max_day) = calendar.monthrange(year, month)
-        # ensure the day field is within the range of the days of the month
-        return min(self.selected_date.day, max_day)
+
+        # ? range check: ensure the day field is within the range of the days of the month
+        clamped_day = self.selected_date.day
+        if self.selected_date.day > max_day:
+            clamped_day = max_day
+        
+        return clamped_day

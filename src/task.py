@@ -26,9 +26,10 @@ class Task:
     def __str__(self) -> str:
         return f"{self.title} {self.due_date.strftime("%d/%m/%y")} {self.class_name} {str(self.priority)} {str(self.completed)}"
 
+    # getters and setters
+    
     def is_complete(self) -> bool:
         return self.completed
-    
 
     def set_completed(self, complete: bool):
         self.completed = complete
