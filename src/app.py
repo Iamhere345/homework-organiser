@@ -59,3 +59,13 @@ class HomeworkOrganiser(QtWidgets.QWidget):
         print("task deleted")
         del self.tasks[index]
         self.task_view.redraw_list()
+    
+    # callback for when new tasks are loaded from a file
+    def on_tasks_loaded(self, tasks: list[Task]):
+        self.tasks = tasks
+
+        self.task_view.tasks = tasks
+        self.task_view.redraw_list()
+
+        self.edit_view.clear_selected_task()
+

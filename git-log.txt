@@ -1,0 +1,59 @@
+commit 944accda6af1a03ecbf8bf3a2cb3d0c56d53f8a5
+Author: Iamhere345 <lwcha7278@gmail.com>
+Date:   Fri Aug 1 17:26:19 2025 +1000
+
+    add comments
+
+commit fb89e02f0b64c22c5dd79511f75380990ed0ed56
+Author: Iamhere345 <lwcha7278@gmail.com>
+Date:   Thu Jul 31 18:03:51 2025 +1000
+
+    add extra input validation for marking non-existent tasks as complete, add initial code for saving/loading tasks (not finished yet)
+
+commit c4258e6f34ae412c45bb492d68e1c66dc71df244
+Author: Iamhere345 <lwcha7278@gmail.com>
+Date:   Mon Jul 28 19:24:47 2025 +1000
+
+    Add error popups, implement deleting tasks, implement creating tasks, allow tasks to be marked as completed from task list checkbox
+
+commit 4c5ab5c786ff0b574f64375288791a973cdf6204
+Author: Iamhere345 <lwcha7278@gmail.com>
+Date:   Mon Jul 28 13:08:00 2025 +1000
+
+    Implement selecting task cards, implement editing existing task cards
+
+commit 847603494f5b13a41f56f97243e7963f173ad2c5
+Author: Iamhere345 <lwcha7278@gmail.com>
+Date:   Fri Jul 25 09:44:57 2025 +1000
+
+    Add task editing / creation ui, add separator lines, fix size and scaling of task list, add text formatting to task cards, correctly scale ui when window size is changed, create date picker widget
+
+commit 33c416b08dfec373d21d08301e2f9556a677906f
+Author: Iamhere345 <lwcha7278@gmail.com>
+Date:   Fri Jun 27 17:00:18 2025 +1000
+
+    add testing table, add a few comments (includes last commit)
+
+commit ca39bdf40094ce86973a74bc013642a3251ec4ce
+Author: Iamhere345 <lwcha7278@gmail.com>
+Date:   Fri Jun 27 16:50:36 2025 +1000
+
+    add task list header, implement task list sorting
+
+commit cf7d0c42c6e700e14191a54864a5e75e23854fd1
+Author: Iamhere345 <lwcha7278@gmail.com>
+Date:   Fri Jun 27 16:40:40 2025 +1000
+
+    add task list header, implement task list sorting
+
+commit d2bdaf69270136f808a5c3652322e4f7ebfd49f8
+Author: Iamhere345 <lwcha7278@gmail.com>
+Date:   Tue Jun 24 13:18:07 2025 +1000
+
+    get basic task list working
+
+commit fa2b6bb4918e879f7407f279ba1d3984881da694
+Author: Iamhere345 <lwcha7278@gmail.com>
+Date:   Mon Jun 23 13:18:52 2025 +1000
+
+    initial commit

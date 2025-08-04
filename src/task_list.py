@@ -205,7 +205,7 @@ class TaskView(QtWidgets.QVBoxLayout):
         
         # sort tasks and redraw task list
         self.sort_tasks()
-        self.redraw_list
+        self.redraw_list()
 
         self.sort_btn.setText(f"Sort by: {str(self.sort_type)}")
     

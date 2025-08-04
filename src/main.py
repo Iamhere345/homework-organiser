@@ -32,6 +32,8 @@ if __name__ == "__main__":
     homework_organiser = HomeworkOrganiser(menu_bar.tasks)
     window.setCentralWidget(homework_organiser)
 
+    menu_bar.tasks_loaded.connect(lambda: homework_organiser.on_tasks_loaded(menu_bar.tasks))
+
     window.resize(768, 480)
     window.show()
 

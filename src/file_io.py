@@ -12,9 +12,9 @@ def load_tasks(path: str) -> list[Task] | None:
             try:
                 # ! the file data is the primary data source for the application
                 # it allows the user to have tasks that persist between sessions
-                return jsonpickle.decode(save_file)
+                return jsonpickle.decode(save_file.read())
             except:
-                ErrorMessage("Unable to load task file", "Selected task file is invalid. Check if you have selected the correct file.")
+                ErrorMessage("Unable to load task file", "Selected task file could not be loaded because it is invald. Check if you have selected the correct file and that the file has not been corrupted.")
     except:
         ErrorMessage("Unable to open file", "Unable to open file, please make sure it exists")
 
