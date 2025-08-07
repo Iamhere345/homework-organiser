@@ -3,6 +3,9 @@ import jsonpickle
 from task import *
 from utils import ErrorMessage
 
+# ? Data sources
+# ?     - task file (.tsk): was used as the primary data source because it provides a method of persistent data storage between sessions, allowing the user to save tasks they created in one session and load them in another session
+
 # load tasks from file path
 def load_tasks(path: str) -> list[Task] | None:
     # will display an error message if open(path) fails

@@ -8,6 +8,16 @@ from PySide6.QtCore import Qt
 from task import *
 from utils import *
 
+# ? Data types:
+# ?     - int: used as an index when iterating over lists, used to keep track of the task being edited's position in the main task list
+# ?     - str: used to store text that will be displayed to the user in the GUI
+# ?     - datetime: used to store user-inputted dates easily 
+# ?     - TaskPriority: used to allow different task priorities to be represented using a finite number of values (i.e as an Enum)
+# ?     - TaskEdit: used to represent the entire task editing part of the GUI, creates and stores all widgets used in this part of the GUI
+# ?     - DatePicker: used to represent a self-contained date picker widget. Creates and stores all widgets used for the take picker part of the GUI
+# ? Data structures:
+# ?     - list: was used because it provides a method of storing data (Like text for combo boxes and days of the month) in a way that allows more items to be added and sorted
+
 class TaskEdit(QtWidgets.QVBoxLayout):
     # define Qt signals
     updated = QtCore.Signal()
@@ -179,13 +189,12 @@ class TaskEdit(QtWidgets.QVBoxLayout):
         self.task_index = None
 
         self.name_field.setText(" ")
+        self.name_field.setPlaceholderText("")
         self.class_field.setText(" ")
         self.priority_combo.setCurrentIndex(0)
         self.date_picker.set_date(datetime.now())
+    
 
-        
-
-# TODO document
 class DatePicker(QtWidgets.QHBoxLayout):
     def __init__(self):
         super().__init__()

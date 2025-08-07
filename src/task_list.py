@@ -1,12 +1,20 @@
 from PySide6 import QtWidgets
 from PySide6 import QtCore
 from PySide6 import QtGui
-import PySide6
-
-from datetime import datetime
 
 from task import *
 from utils import *
+
+# ? Data types:
+# ?     - Enum: was used for self.sort_type because it can easily represent a finite number of states (such as sorting by name, class, etc)
+# ?     - int: used to keep track of the current index when iterating over a list of task cards. This was necessary to check if it should be striped or not (based on if its index was odd or even)
+# ?     - str: used to store text that will be displayed to the user in the GUI
+# ?     - bool: used because it can only represent a binary on/off state, was used to convey if a task should be striped or not and if task matched a sort comparison
+# ?     - TaskCard: represents a single task in the GUI, stores the child GUI widgets used to create the task card in the ui
+# ?     - TaskList: represents the scrollable list part of the task list GUI. Acts as a container for the widgets that handle scrolling and the TaskCards
+# ?     - TaskView: represents the entire task list GUI, combines the TaskList with a header and handles task sorting
+# ? Data Structures:
+# ?     - list[Task]: was used because it provides a method of storing Tasks in a way that allows more tasks to be added and sorted
 
 # an enum has been used as the sort type can only be defined as these specific values
 # (effectively a constant)
@@ -63,7 +71,7 @@ class TaskCard(QtWidgets.QFrame):
         self.checkbox.checkStateChanged.connect(self.checkbox_pressed)
         hbox.addWidget(self.checkbox)
 
-        colour = "mid" if striped else "light"
+        colour = "light" if striped else "window"
 
         # set style and sizing
         super().setLayout(hbox)
@@ -145,9 +153,9 @@ class TaskList(QtWidgets.QScrollArea):
         # uses teh tasks index (int) to check if it should be coloured light or not
         for i, task in enumerate(self.task_cards):
             if i == index:
-                task.setStyleSheet(f"background-color: palette(highlight); border-radius: 8px;")
+                task.setStyleSheet(f"background-color: palette(accent); border-radius: 8px;")
             else:
-                colour = "mid" if i % 2 == 0 else "light"
+                colour = "light" if i % 2 == 0 else "window"
                 task.setStyleSheet(f"background-color: palette({colour}); border-radius: 8px;")
 
 # this class combines the TaskList with a header and manages the sorting of tasks

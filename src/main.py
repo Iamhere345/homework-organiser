@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     mid_colour = pal.color(QPalette.ColorRole.Mid)
     pal.setColor(QPalette.ColorRole.Window, mid_colour)
-    app.setPalette(pal)
+    #app.setPalette(pal)
 
     # ! maintainability: if a consistent cross-platform style is needed uncomment this line
     #app.setStyle("Fusion")
